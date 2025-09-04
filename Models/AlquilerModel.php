@@ -19,7 +19,12 @@ class AlquilerModel extends Query
     }
     public function getVehiculos()
     {
-        $sql = "SELECT v.id, v.placa, v.id_tipo, v.id_marca, v.estado, t.id, t.tipo, m.id, m.marca FROM vehiculos v INNER JOIN tipos t ON t.id = v.id_tipo INNER JOIN marcas m ON m.id = v.id_marca WHERE v.estado = 1";
+        $sql = 
+        "SELECT v.id, v.placa, v.id_tipo, v.id_marca, v.estado, t.id, t.tipo, m.id, m.marca 
+        FROM vehiculos v 
+        INNER JOIN tipos t ON t.id = v.id_tipo 
+        INNER JOIN marcas m ON m.id = v.id_marca 
+        WHERE v.estado = 1";
         $existe = $this->selectAll($sql);
         return $existe;
     }
@@ -45,24 +50,58 @@ class AlquilerModel extends Query
         return $this->select($sql);
     }
 
-    public function registrarAlquiler($cantidad, $precios, $monto, $abono, $fecha, $fecha_devolucion, $observacion, $id_cli, $id_veh, $documento)
-    {
-        $verficar = "SELECT * FROM alquiler WHERE id_cliente = $id_cli AND id_vehiculo = $id_veh AND id_doc = $documento AND estado = 1";
-        $existe = $this->select($verficar);
-        if (empty($existe)) {
-            $sql = "INSERT INTO alquiler(cantidad, tipo_precio, monto, abono, fecha_prestamo, fecha_devolucion, observacion, id_cliente, id_vehiculo, id_doc) VALUES (?,?,?,?,?,?,?,?,?,?)";
-            $datos = array($cantidad, $precios, $monto, $abono, $fecha, $fecha_devolucion, $observacion, $id_cli, $id_veh, $documento);
-            $data = $this->insertar($sql, $datos);
-            if ($data > 0) {
-                $res = $data;
-            } else {
-                $res = "error";
-            }
-        } else {
-            $res = "existe";
-        }
-        return $res;
+    /*  Registrar un alquiler y ligarlo a la caja activa  */
+public function registrarAlquiler(
+    $cantidad,
+    $precios,
+    $monto,
+    $abono,
+    $fecha,
+    $fecha_devolucion,
+    $observacion,
+    $id_cli,
+    $id_veh,
+    $documento,
+    $id_caja          //  ← NUEVO
+){
+    /*  1. Verificar que exista una caja activa           */
+    if (!$id_caja) {
+        return 'sin_caja';            // El controlador decide qué hacer
     }
+
+    /*  2. Evitar duplicados para la misma caja           */
+    $verificar = "SELECT 1
+                    FROM alquiler
+                   WHERE id_cliente = ?
+                     AND id_vehiculo = ?
+                     AND id_doc     = ?
+                     AND id_caja    = ?
+                     AND estado     = 1
+                   LIMIT 1";
+    $existe = $this->select($verificar, [$id_cli, $id_veh, $documento, $id_caja]);
+
+    if (!empty($existe)) {
+        return 'existe';
+    }
+
+    /*  3. Insertar con id_caja                           */
+    $sql = "INSERT INTO alquiler
+              (cantidad, tipo_precio, monto, abono,
+               fecha_prestamo, fecha_devolucion, observacion,
+               id_cliente, id_vehiculo, id_doc, id_caja)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+
+    $datos = [
+        $cantidad, $precios, $monto, $abono,
+        $fecha, $fecha_devolucion, $observacion,
+        $id_cli, $id_veh, $documento, $id_caja
+    ];
+
+    $data = $this->insertar($sql, $datos);
+
+    return ($data > 0) ? $data : 'error';
+}
+
     public function actualizarVehiculo(int $estado, int $id)
     {
         $sql = "UPDATE vehiculos SET estado = ? WHERE id = ?";
@@ -93,4 +132,42 @@ class AlquilerModel extends Query
         $existe = $this->select($sql);
         return $existe;
     }
+
+    /* ==========================================================
+ *  Comprueba solapamiento de fechas para un vehículo
+ *  Devuelve true si existe cruce; false si está libre
+ * ========================================================== */
+public function haySolape(string $fIni, string $fFin, int $idVeh): bool
+{
+    /* --- 1. Alquileres activos -------------------------------- */
+    $sqlAlq = "SELECT 1
+                 FROM alquiler
+                WHERE id_vehiculo = ?
+                  AND estado       = 1          -- todavía alquilado
+                  AND (
+                        (? BETWEEN fecha_prestamo AND fecha_devolucion)
+                     OR (? BETWEEN fecha_prestamo AND fecha_devolucion)
+                     OR (fecha_prestamo BETWEEN ? AND ?)
+                     )
+                LIMIT 1";
+
+    /* --- 2. Reservas activas ---------------------------------- */
+    $sqlRes = "SELECT 1
+                 FROM reservas
+                WHERE id_vehiculo = ?
+                  AND estado       = 1          -- reserva confirmada/activa
+                  AND (
+                        (? BETWEEN f_recogida AND f_entrega)
+                     OR (? BETWEEN f_recogida AND f_entrega)
+                     OR (f_recogida BETWEEN ? AND ?)
+                     )
+                LIMIT 1";
+
+    /* parámetros */
+    $p = [$idVeh,$fIni,$fFin,$fIni,$fFin];
+
+    /* Si alguna consulta devuelve fila => hay solape */
+    return $this->select($sqlAlq,$p) || $this->select($sqlRes,$p);
+}
+
 }

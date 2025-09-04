@@ -31,15 +31,19 @@ class DashboardModel extends Query
         return $this->select($sql);
     }
 
-    public function rentasSemana()
-    {
-        $sql = "SELECT 
-        DATE_FORMAT(fecha_prestamo, '%Y-%m-%d') as fecha, 
-        SUM(cantidad * monto) as total
-        FROM alquiler
-        WHERE WEEK(fecha_prestamo) = WEEK(CURDATE())  -- Obtener la semana actual
-        GROUP BY fecha
-        ORDER BY fecha";
-        return $this->selectAll($sql);
-    }
+   /* ===========================================================
+ *  Nº de alquileres por día de la semana (semana en curso)
+ * =========================================================== */
+public function rentasSemana()
+{
+    $sql = "SELECT
+                DAYOFWEEK(fecha_prestamo)              AS nro_dia,        -- 1=Dom, 2=Lun …
+                DATE_FORMAT(fecha_prestamo,'%W')       AS dia_semana,     -- Lunes, Martes…
+                COUNT(*)                               AS total_rentas
+            FROM  alquiler
+            WHERE YEARWEEK(fecha_prestamo, 1) = YEARWEEK(CURDATE(), 1)   -- misma semana ISO 8601
+            GROUP BY nro_dia, dia_semana
+            ORDER BY nro_dia";
+            return $this->selectAll($sql);
+}
 }

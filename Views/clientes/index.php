@@ -58,7 +58,7 @@
                         <label for="dni"><i class="fas fa-id-card"></i> Dni <span class="text-danger fw-bold">*</span> </label>
                     </div>
                     <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="El nombre es requerido">
-                        <input id="nombre" class="form-control" type="text" name="nombre" placeholder="Nombre del cliente" required>
+                        <input id="nombre" class="form-control" type="text" style="text-transform: capitalize;" name="nombre" placeholder="Nombre del cliente" required>
                         <label for="nombre"><i class="fas fa-list"></i> Nombre <span class="text-danger fw-bold">*</span> </label>
                     </div>
                     <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="El teléfono es requerido">

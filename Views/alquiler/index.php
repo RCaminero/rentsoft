@@ -17,7 +17,7 @@
                         <th>F. Devolción</th>
                         <th>Cant.</th>
                         <th>Monto</th>
-                        <th>Abono</th>
+                        <th>Pagado</th>
                         <th>Estado</th>
                         <th></th>
                         <th></th>
@@ -108,7 +108,7 @@
                                 <div class="col-md-4">
                                     <div class="form-floating mb-3">
                                         <input id="abono" class="form-control" type="text" name="abono" placeholder="Abono" required>
-                                        <label for="abono">Abono <span class="text-danger fw-bold">*</span></label>
+                                        <label for="abono">Pagado <span class="text-danger fw-bold">*</span></label>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -157,7 +157,7 @@
                     <div class="form-floating mb-3">
                         <input type="hidden" id="id_alquiler">
                         <input id="pendiente" class="form-control" type="text" placeholder="Monto a Pendiente" disabled>
-                        <label for="pendiente">Monto Abonado</label>
+                        <label for="pendiente">Monto Pagado</label>
                     </div>
                     <div class="form-floating mb-3">
                         <input id="monto_pagar" class="form-control" type="text" placeholder="Monto a Pagar" disabled>

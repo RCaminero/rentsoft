@@ -23,65 +23,87 @@ class Alquiler extends Controller
 
     public function registrar()
     {
-        $id_cli = strClean($_POST['id_cli']);
-        $id_veh = strClean($_POST['id_veh']);
-        $select_cliente = strClean($_POST['select_cliente']);
-        $select_vehiculo = strClean($_POST['select_vehiculo']);
-        $cantidad = strClean($_POST['cantidad']);
-        $precios = strClean($_POST['precios']);
-        $abono = strClean($_POST['abono']);
-        $fecha = strClean($_POST['fecha']);
-        $documento = strClean($_POST['documento']);
-        $observacion = strClean($_POST['observacion']);
+        /* ───────── 1. Variables recibidas ───────── */
+        $id_cli         = strClean($_POST['id_cli']);
+        $id_veh         = strClean($_POST['id_veh']);
+        $sel_cliente    = strClean($_POST['select_cliente']);
+        $sel_vehiculo   = strClean($_POST['select_vehiculo']);
+        $cantidad       = (int)strClean($_POST['cantidad']);
+        $tipo_precio    = (int)strClean($_POST['precios']);   // 1‑hora | 2‑día | 3‑mes
+        $abono          = (float)strClean($_POST['abono']);
+        $fecha_ini      = strClean($_POST['fecha']);          // yyyy‑mm‑dd hh:ii
+        $id_doc         = (int)strClean($_POST['documento']);
+        $obs            = strClean($_POST['observacion']);
+
+        /* ───────── 2. Validación básica ─────────── */
         if (
-            empty($id_cli) || empty($id_veh) || empty($select_cliente) || empty($select_vehiculo)
-            || empty($cantidad) || empty($precios) || empty($abono) || empty($fecha) || empty($documento)
-        ) {
-            $msg = array('msg' => 'Todo los campos con * son requeridos', 'icono' => 'warning');
-        } else {
-            //consultar precio x tipo
-            $car = $this->model->getVehiculo($id_veh);
-            if ($precios == 1) {
-                $total = '+ ' . $cantidad . ' hours';
-                $monto = $car['precio_hora'];
-            } else if ($precios == 2) {
-                $total = '+ ' . $cantidad . ' days';
-                $monto = $car['precio_dia'];
-            } else {
-                $total = '+ ' . $cantidad . ' month';
-                $monto = $car['precio_mes'];
-            }
-            $fecha_devolucion = date("Y-m-d H:i:s", strtotime($fecha . $total));
-            $existe = $this->model->verify($fecha, $fecha_devolucion, $id_veh);
-            if (empty($existe)) {
-                $data = $this->model->registrarAlquiler($cantidad, $precios, $monto, $abono, $fecha, $fecha_devolucion, $observacion, $id_cli, $id_veh, $documento);
-                if ($data > 0) {
-                    $msg = array('msg' => 'Alquiler registrado con éxito', 'icono' => 'success', 'id_alquiler' => $data);
-                } else if ($data == "existe") {
-                    $msg = array('msg' => 'El alquiler ya esta registrado', 'icono' => 'warning');
-                } else {
-                    $msg = array('msg' => 'Error al registrar el cliente', 'icono' => 'error');
-                }
-            } else {
-                $msg = array('msg' => 'El vehículo esta reservado: ' . $existe['f_recogida'] . ' hasta ' . $existe['f_entrega'], 'icono' => 'error');
-            }
+            !$id_cli || !$id_veh || !$sel_cliente || !$sel_vehiculo ||
+            !$cantidad || !$tipo_precio || $abono==='' || !$fecha_ini || !$id_doc
+        ){
+            $this->json(['msg'=>'Todos los campos * son obligatorios','icono'=>'warning']);
         }
-        echo json_encode($msg, JSON_UNESCAPED_UNICODE);
-        die();
+
+        /* ───────── 3. Precio y fecha fin ────────── */
+        $veh   = $this->model->getVehiculo($id_veh);
+        if(!$veh){ $this->json(['msg'=>'Vehículo inexistente','icono'=>'error']); }
+
+        switch ($tipo_precio) {
+            case 1:  $monto = $veh['precio_hora']; $delta = "+{$cantidad} hours"; break;
+            case 2:  $monto = $veh['precio_dia'];  $delta = "+{$cantidad} days";  break;
+            default: $monto = $veh['precio_mes'];  $delta = "+{$cantidad} month"; break;
+        }
+        $fecha_fin = date('Y-m-d H:i:s', strtotime($fecha_ini.$delta));
+
+        /* ───────── 4. Disponibilidad (anti‑solape) ───────── */
+        if ($this->model->haySolape($fecha_ini,$fecha_fin,$id_veh)){
+            $this->json([
+                'msg'=>"El vehículo ya está asignado entre {$fecha_ini} y {$fecha_fin}",
+                'icono'=>'error'
+            ]);
+        }
+
+        /* ───────── 5. Caja abierta obligatoria ─────────── */
+        $idCaja = $_SESSION['id_caja_activa'] ?? 0;
+        if ($idCaja == 0){
+            $this->json(['msg'=>'Debe abrir una caja antes de registrar','icono'=>'error']);
+        }
+
+        /* ───────── 6. Insertar registro ─────────── */
+        $idAlq = $this->model->registrarAlquiler(
+                    $cantidad,$tipo_precio,$monto,$abono,
+                    $fecha_ini,$fecha_fin,$obs,
+                    $id_cli,$id_veh,$id_doc,$idCaja);
+
+        if ($idAlq > 0){
+            $this->json(['msg'=>'Alquiler registrado','icono'=>'success',
+                        'id_alquiler'=>$idAlq]);
+        }
+        $this->json(['msg'=>'Error al registrar','icono'=>'error']);
     }
+
+    /* helper interno para responder JSON */
+    private function json(array $a){ echo json_encode($a,JSON_UNESCAPED_UNICODE); exit; }
+
     public function listar()
     {
         $data = $this->model->getAlquiler();
         for ($i = 0; $i < count($data); $i++) {
+                $btnPdf   = '<a class="btn btn-outline-danger btn-sm" target="_blank"
+                href="'.base_url.'alquiler/pdfPrestamo/'.$data[$i]['id'].'">
+              <i class="fas fa-file-pdf"></i></a>';
+
+                $btnTicket= '<a class="btn btn-outline-success btn-sm" target="_blank"
+                            href="'.base_url.'alquiler/pdfTicket/'.$data[$i]['id'].'">
+                            <i class="fas fa-receipt"></i></a>';
             $data[$i]['f_prestamo'] = '<span class="badge bg-primary">' . $data[$i]['fecha_prestamo'] . '</span>';
             $data[$i]['f_devolucion'] = '<span class="badge bg-info">' . $data[$i]['fecha_devolucion'] . '</span>';
             if ($data[$i]['estado'] == 1) {
                 $data[$i]['recibir'] = '<button class="btn btn-outline-primary" type="button" onclick="entrega(' . $data[$i]['id'] . ');"><i class="fas fa-sync-alt"></i></button>';
-                $data[$i]['accion'] = '<a class="btn btn-outline-danger" target="_blank" href="' . base_url . 'alquiler/pdfPrestamo/' . $data[$i]['id'] . '"><i class="fas fa-file-pdf"></i></a>';
+                $data[$i]['accion'] = $btnPdf.' '.$btnTicket;
                 $data[$i]['estatus'] = '<span class="badge bg-warning">Alquilado</span>';
             } else {
                 $data[$i]['recibir'] = '';
-                $data[$i]['accion'] = '<a class="btn btn-outline-danger" target="_blank" href="' . base_url . 'alquiler/pdfPrestamo/' . $data[$i]['id'] . '"><i class="fas fa-file-pdf"></i></a>';
+                $data[$i]['accion'] = $btnPdf.' '.$btnTicket;
                 $data[$i]['estatus'] = '<span class="badge bg-success">Devuelto</span>';
             }
         }
@@ -167,7 +189,7 @@ class Alquiler extends Controller
 
         $pdf->Cell(70, 5, utf8_decode($tipo . $data['cantidad']), 1, 1, 'L');
         $pdf->Cell(65, 5, utf8_decode('MONTO x ' . $tipo . $data['monto']), 1, 0, 'L');
-        $pdf->Cell(70, 5, utf8_decode('ABONADO: ' . $data['abono']), 1, 1, 'L');
+        $pdf->Cell(70, 5, utf8_decode('PAGADO: ' . $data['abono']), 1, 1, 'L');
         $pdf->Cell(65, 5, utf8_decode('F. PRESTAMO: ' . $data['fecha_prestamo']), 1, 0, 'L');
         $pdf->Cell(70, 5, utf8_decode('F. DEVOLUCIÓN: ' . $data['fecha_devolucion']), 1, 1, 'L');
         $pdf->Ln();
@@ -183,74 +205,198 @@ class Alquiler extends Controller
         $pdf->Cell(65, 5, utf8_decode('Firma'), 0, 0, 'C');
         $pdf->Cell(65, 5, utf8_decode('Huella'), 0, 1, 'C');
         $pdf->Ln(2);
-        $pdf->WriteHtml(utf8_decode($empresa['mensaje']));
+        $pdf->Ln(5); // Espacio antes del mensaje
+$pdf->SetFont('Arial', 'B', 10);
+$pdf->Cell(135, 5, 'GRACIAS POR PREFERIRNOS', 0, 1, 'C');
+$pdf->Ln(2); // Espacio después del mensaje
 
         $pdf->Output();
     }
-    public function pdfAlquiler()
-    {
-        $empresa = $this->model->getEmpresa();
-        $alquiler = $this->model->getAlquiler();
-        if (empty($alquiler)) {
-            echo 'No hay registro';
-        } else {
-            require('Libraries/fpdf/fpdf.php');
-            include('Libraries/phpqrcode/qrlib.php');
-            $pdf = new FPDF('L', 'mm', 'A4');
-            $pdf->AddPage();
-            $pdf->SetMargins(5, 0, 0);
-            $pdf->SetTitle('Reporte Alquiler');
-            $pdf->SetFont('Arial', '', 15);
-            $pdf->Cell(280, 8, utf8_decode($empresa['nombre']), 0, 1, 'C');
+    /* ------------------------------------------------------------------
+ *  Reporte global de alquileres  –  PDF A4 horizontal
+ * -----------------------------------------------------------------*/
+public function pdfAlquiler()
+{
+    $empresa  = $this->model->getEmpresa();
+    $alquiler = $this->model->getAlquiler();
 
-            $pdf->Image('Assets/img/logo.png', 250, 10, 25, 25);
-            $pdf->SetFont('Arial', '', 12);
-            $pdf->Cell(25, 5, 'Ruc: ', 0, 0, 'L');
-            $pdf->Cell(20, 5, $empresa['ruc'], 0, 1, 'L');
-            $pdf->Cell(25, 5, utf8_decode('Teléfono: '), 0, 0, 'L');
-            $pdf->Cell(20, 5, $empresa['telefono'], 0, 1, 'L');
-            $pdf->Cell(25, 5, utf8_decode('Correo: '), 0, 0, 'L');
-            $pdf->Cell(20, 5, utf8_decode($empresa['correo']), 0, 1, 'L');
-            $pdf->Cell(25, 5, utf8_decode('Dirección: '), 0, 0, 'L');
-            $pdf->Cell(20, 5, utf8_decode($empresa['direccion']), 0, 1, 'L');
-            $pdf->Ln(10);
-            //Encabezado de productos
-            $pdf->SetFillColor(0, 0, 0);
-            $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('Arial', '', 12);
-            $pdf->Cell(289, 5, 'Detalle de Alquiler', 1, 1, 'C', true);
-            $pdf->SetFont('Arial', '', 10);
-            $pdf->SetFillColor(155, 155, 155);
-            $pdf->SetTextColor(255, 255, 255);
-            $pdf->Cell(30, 5, 'Doc. Garantia', 1, 0, 'L', true);
-            $pdf->Cell(60, 5, 'Cliente', 1, 0, 'L', true);
-            $pdf->Cell(30, 5, 'Placa', 1, 0, 'L', true);
-            $pdf->Cell(40, 5, utf8_decode('Vehículo'), 1, 0, 'L', true);
-            $pdf->Cell(35, 5, 'F. Prestamo', 1, 0, 'L', true);
-            $pdf->Cell(35, 5, 'F. Entrega', 1, 0, 'L', true);
-            $pdf->Cell(15, 5, utf8_decode('Cant'), 1, 0, 'L', true);
-            $pdf->Cell(24, 5, utf8_decode('Monto'), 1, 0, 'L', true);
-            $pdf->Cell(20, 5, 'Estado', 1, 1, 'L', true);
-            $pdf->SetTextColor(0, 0, 0);
-            foreach ($alquiler as $row) {
-                $pdf->Cell(30, 5, utf8_decode($row['documento']), 1, 0, 'L');
-                $pdf->Cell(60, 5, utf8_decode($row['nombre']), 1, 0, 'L');
-                $pdf->Cell(30, 5, $row['placa'], 1, 0, 'L');
-                $pdf->Cell(40, 5, utf8_decode($row['tipo']), 1, 0, 'L');
-                $pdf->Cell(35, 5, $row['fecha_prestamo'], 1, 0, 'L');
-                $pdf->Cell(35, 5, $row['fecha_devolucion'], 1, 0, 'L');
-                $pdf->Cell(15, 5, $row['cantidad'], 1, 0, 'C');
-                $pdf->Cell(24, 5, $row['monto'], 1, 0, 'L');
-                if ($row['estado'] == 1) {
-                    $pdf->SetTextColor(255, 0, 0);
-                    $pdf->Cell(20, 5, 'Alquilado', 1, 1, 'L');
-                } else {
-                    $pdf->SetTextColor(0, 255, 0);
-                    $pdf->Cell(20, 5, 'Devuelto', 1, 1, 'L');
-                }
-                $pdf->SetTextColor(0, 0, 0);
-            }
-            $pdf->Output();
-        }
+    if (empty($alquiler)) { echo 'No hay registro'; return; }
+
+    require 'Libraries/fpdf/fpdf.php';
+
+    // ─── Configuración básica ──────────────────────────────────────
+    $pdf = new FPDF('L', 'mm', 'A4');
+    $pdf->SetMargins(5,5,5);
+    $pdf->SetTitle('Reporte Alquiler');
+    $pdf->AddPage();
+
+    /* --------------------------------------------------------------
+     *  Encabezado: logo + datos de empresa
+     * --------------------------------------------------------------*/
+    // Logo arriba‑derecha
+    $pdf->Image('Assets/img/logo.png', 260, 6, 30);
+
+    // Nombre de empresa centrado
+    $pdf->SetFont('Arial','B',16);
+    $pdf->Cell(0,8,utf8_decode($empresa['nombre']),0,1,'C');
+
+    $pdf->SetFont('Arial','',10);
+    $yInicio = $pdf->GetY();
+    $label   = function($texto){ return utf8_decode($texto).': '; };
+
+    $pdf->Cell(25,5,$label('RUC'),0,0);
+    $pdf->Cell(60,5,$empresa['ruc'],0,0);
+    $pdf->Cell(25,5,$label('Teléfono'),0,0);
+    $pdf->Cell(60,5,$empresa['telefono'],0,1);
+
+    $pdf->Cell(25,5,$label('Correo'),0,0);
+    $pdf->Cell(60,5,utf8_decode($empresa['correo']),0,0);
+    $pdf->Cell(25,5,$label('Dirección'),0,0);
+    $pdf->Cell(60,5,utf8_decode($empresa['direccion']),0,1);
+
+    $pdf->Ln(8);
+
+    /* --------------------------------------------------------------
+     *  Tabla de detalles
+     * --------------------------------------------------------------*/
+    // Cabecera
+    $pdf->SetFillColor(0);           // negro
+    $pdf->SetTextColor(255);         // blanco
+    $pdf->SetFont('Arial','',11);
+
+    $header = [
+      ['Doc. Garantía',30],
+      ['Cliente',50],
+      ['Placa',25],
+      ['Vehículo',35],
+      ['F. Préstamo',32],
+      ['F. Entrega',32],
+      ['Cant',12],
+      ['Monto',20],
+      ['Pagado',20],
+      ['Estado',20]
+    ];
+    foreach ($header as [$h,$w]) { $pdf->Cell($w,6,utf8_decode($h),1,0,'C',true); }
+    $pdf->Ln();
+
+    // Detalle
+    $pdf->SetTextColor(0);           // negro
+    $pdf->SetFont('Arial','',9);
+
+    foreach ($alquiler as $row) {
+        $estadoTxt = $row['estado']==1 ? 'Alquilado' : 'Devuelto';
+        $montoPago = number_format($row['abono'],2);          // ahora lo llamas “pagado”
+        $montoTot  = number_format($row['monto'],2);
+
+        $pdf->Cell(30,6,utf8_decode($row['documento']),1);
+        $pdf->Cell(50,6,utf8_decode($row['nombre']),1);
+        $pdf->Cell(25,6,$row['placa'],1);
+        $pdf->Cell(35,6,utf8_decode($row['tipo']),1);
+        $pdf->Cell(32,6,$row['fecha_prestamo'],1);
+        $pdf->Cell(32,6,$row['fecha_devolucion'],1);
+        $pdf->Cell(12,6,$row['cantidad'],1,0,'C');
+        $pdf->Cell(20,6,$montoTot,1,0,'R');
+        $pdf->Cell(20,6,$montoPago,1,0,'R');
+
+        // color verde / rojo para estado
+        ($row['estado']==1) ? $pdf->SetTextColor(220,0,0) : $pdf->SetTextColor(0,150,0);
+        $pdf->Cell(20,6,$estadoTxt,1,1,'C');
+        $pdf->SetTextColor(0);      // restaura negro
     }
+
+    /* --------------------------------------------------------------
+     *  Mensaje final
+     * --------------------------------------------------------------*/
+    $pdf->Ln(3);
+    $pdf->SetFont('Arial','B',11);
+    $pdf->Cell(0,6,utf8_decode('GRACIAS POR SU PREFERENCIA'),0,1,'C');
+
+    $pdf->Output();
+}
+public function pdfTicket($id)
+{
+    $empresa = $this->model->getEmpresa();
+    $d       = $this->model->verPrestamo($id);
+
+    if (!$d) { echo 'Alquiler no encontrado'; return; }
+
+    require 'Libraries/fpdf/fpdf.php';
+
+    $pdf = new FPDF('P','mm',[80,200]);
+    $pdf->SetMargins(2,2,2);
+    $pdf->AddPage();
+    $pdf->SetAutoPageBreak(false);
+
+    /* ---- LOGO (opcional) ---- */
+    if (is_file('Assets/img/logo.png')) {
+        $pdf->Image('Assets/img/logo.png', 25, 2, 30);
+        $pdf->Ln(26);
+    }
+
+    /* ---- Encabezado empresa ---- */
+    $pdf->SetFont('Arial','B',9);
+    $pdf->MultiCell(0,4,utf8_decode($empresa['nombre']), '', 'C');
+    $pdf->SetFont('Arial','',7);
+    $pdf->MultiCell(0,4,"RNC: {$empresa['ruc']}", '', 'C');
+    $pdf->MultiCell(0,4,utf8_decode($empresa['telefono']), '', 'C');
+    $pdf->MultiCell(0,4,utf8_decode($empresa['direccion']), '', 'C');
+    $pdf->Ln(2);
+
+    /* ---- Datos del alquiler ---- */
+    $pdf->SetFont('Arial','B',8);
+    $pdf->Cell(0,4,'DATOS DEL ALQUILER', 0, 1, 'C');
+    $pdf->SetFont('Arial','',7);
+    $pdf->Cell(22,4,'Alquiler #:',0,0);  $pdf->Cell(0,4,$d['id'],0,1);
+    $pdf->Cell(22,4,'Fecha:',0,0);       $pdf->Cell(0,4,$d['fecha_prestamo'],0,1);
+    $pdf->Cell(22,4,'Cliente:',0,0);     $pdf->Cell(0,4,utf8_decode($d['nombre']),0,1);
+    $pdf->Ln(2);
+
+    /* ---- Detalle del vehículo ---- */
+    $pdf->SetFont('Arial','B',8);
+    $pdf->Cell(0,4,'DETALLE VEHICULO',0,1,'C');
+    $pdf->SetFont('Arial','',7);
+    $pdf->Cell(20,5,'Tipo:',1,0);   $pdf->Cell(0,5,utf8_decode($d['tipo']),1,1);
+    $pdf->Cell(20,5,'Placa:',1,0);  $pdf->Cell(0,5,$d['placa'],1,1);
+    $pdf->Cell(20,5,'Modelo:',1,0); $pdf->Cell(0,5,$d['modelo'],1,1);
+
+    $tipoTxt = ['1'=>'Hora','2'=>'Día','3'=>'Mes'][$d['tipo_precio']];
+    $pdf->Cell(20,5,'Cantidad:',1,0); $pdf->Cell(0,5,"{$d['cantidad']} {$tipoTxt}(s)",1,1);
+    $pdf->Cell(20,5,'Precio x ' . $tipoTxt . ':',1,0); $pdf->Cell(0,5,'$'.number_format($d['monto'], 2),1,1);
+    $pdf->Ln(2);
+
+    /* ---- Resumen de pago ---- */
+    $total = $d['cantidad'] * $d['monto'];
+    $pend  = $total - $d['abono'];
+
+    $pdf->SetFont('Arial','B',8);
+    $pdf->Cell(0,4,'RESUMEN DE PAGO',0,1,'C');
+    $pdf->SetFont('Arial','',7);
+
+    // Alineamos los montos a la derecha
+    $pdf->Cell(40,4,'Total:',0,0);
+    $pdf->Cell(0,4,'$'.number_format($total, 2),0,1,'R');
+
+    $pdf->Cell(40,4,'Pagado:',0,0);
+    $pdf->Cell(0,4,'$'.number_format($d['abono'], 2),0,1,'R');
+
+    $pdf->Cell(40,4,'Pendiente:',0,0);
+    $pdf->Cell(0,4,'$'.number_format($pend, 2),0,1,'R');
+
+    $pdf->Ln(2);
+
+
+    /* ---- Estado actual ---- */
+    $estado = $d['estado'] == 1 ? 'ALQUILADO' : 'DEVUELTO';
+    $pdf->SetFont('Arial','B',9);
+    $pdf->Cell(0,5,$estado,0,1,'C');
+    $pdf->Ln(3);
+
+    /* ---- Mensaje final ---- */
+    $pdf->SetFont('Arial','B',8);
+    $pdf->MultiCell(0,4,utf8_decode('¡GRACIAS POR SU PREFERENCIA!'),'','C');
+    $pdf->Ln(5);
+
+    $pdf->Output();
+}
+
 }

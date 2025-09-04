@@ -51,7 +51,7 @@
                     </div>
                     <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="El nombre es requerido">
                         <input type="hidden" id="id" name="id">
-                        <input id="nombre" class="form-control" type="text" name="nombre" placeholder="Nombre del Tipo" required>
+                        <input id="nombre" class="form-control" type="text" style="text-transform: capitalize;" name="nombre" placeholder="Nombre del Tipo" required>
                         <label for="nombre"><i class="fas fa-tags"></i> Nombre <span class="text-danger fw-bold">*</span></label>
                     </div>
 

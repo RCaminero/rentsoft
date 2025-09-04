@@ -23,6 +23,9 @@ $reservas = new ReservasModel();
     <link rel="stylesheet" href="<?php echo base_url; ?>Assets/vendors/fullcalendar/css/main.min.css" />
     <link href="<?php echo base_url; ?>Assets/css/jquery-ui.min.css" rel="stylesheet" />
     <link href="<?php echo base_url; ?>Assets/DataTables/datatables.min.css" rel="stylesheet" />
+    <!-- En tu header -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/alertify.min.css"/>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
 
     <style>
         .ui-autocomplete {
@@ -37,8 +40,8 @@ $reservas = new ReservasModel();
         <!-- partial:partials/_navbar.html -->
         <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
             <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-                <a class="navbar-brand brand-logo" href="<?php echo base_url; ?>">Renta Car</a>
-                <a class="navbar-brand brand-logo-mini" href="<?php echo base_url; ?>">Renta Car</a>
+                <a class="navbar-brand brand-logo" href="<?php echo base_url; ?>"><img src="<?php echo base_url; ?>Assets/img/logo.png" alt="Renta Car Logo" style="height: 80px; weight: 90px;"></a>
+                <a class="navbar-brand brand-logo-mini" href="<?php echo base_url; ?>"><img src="<?php echo base_url; ?>Assets/img/logo.png" alt="Renta Car Logo" style="height: 30px;"></a>
                 <button class="navbar-toggler navbar-toggler align-self-center d-none d-lg-flex" type="button" data-toggle="minimize">
                     <span class="typcn typcn-th-menu"></span>
                 </button>
@@ -155,7 +158,6 @@ $reservas = new ReservasModel();
                                 </p>
                             </div>
                         </div>
-                        <p class="sidebar-menu-title">Dash menu</p>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo base_url . 'dashboard'; ?>">
@@ -192,32 +194,58 @@ $reservas = new ReservasModel();
                             </ul>
                         </div>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="collapse" href="#ui-alquilar" aria-expanded="false" aria-controls="ui-alquilar">
                             <i class="typcn typcn-film menu-icon"></i>
-                            <span class="menu-title">Alquileres</span>
+                            <span class="menu-title">Rentas</span>
                             <i class="menu-arrow"></i>
                         </a>
                         <div class="collapse" id="ui-alquilar">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'alquiler'; ?>">Rentas</a></li>
+                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'alquiler'; ?>">Registrar renta</a></li>
                                 <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'alquiler/pdfAlquiler'; ?>" target="_blank">Reportes</a></li>
                             </ul>
                         </div>
                     </li>
-                    <!-- <li class="nav-item">
-                        <a class="nav-link" data-toggle="collapse" href="#form-reserva" aria-expanded="false" aria-controls="form-reserva">
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="collapse" href="#ui-ventas" aria-expanded="false" aria-controls="ui-ventas">
                             <i class="typcn typcn-film menu-icon"></i>
-                            <span class="menu-title">Reservas</span>
+                            <span class="menu-title">Ventas</span>
                             <i class="menu-arrow"></i>
                         </a>
-                        <div class="collapse" id="form-reserva">
+                        <div class="collapse" id="ui-ventas">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'reservas'; ?>">Pendientes</a></li>
-                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'reservas/reportes'; ?>">Aprobadas</a></li>
+                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'productos'; ?>">Registrar Inventario</a></li>
+                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'ventas'; ?>">Registrar Venta</a></li>
                             </ul>
                         </div>
-                    </li> -->
+                    </li>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" data-toggle="collapse" href="#ui-gastos" aria-expanded="false" aria-controls="ui-gastos">
+                            <i class="typcn typcn-film menu-icon"></i>
+                            <span class="menu-title">Gastos</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="collapse" id="ui-gastos">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'gastos'; ?>">Registrar Gasto</a></li>                          </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="collapse" href="#ui-caja" aria-expanded="false" aria-controls="ui-caja">
+                            <i class="typcn typcn-film menu-icon"></i>
+                            <span class="menu-title">Caja</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="collapse" id="ui-caja">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'caja'; ?>">Abrir/Cerrar Caja</a></li>   
+                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'reportesemana'; ?>">Reporte Semanal</a></li>                       
+                                <li class="nav-item"><a class="nav-link" href="<?php echo base_url . 'reportemes'; ?>">Reporte Mensual</a></li>                       
+                            </ul>
+                        </div>
                 </ul>
 
             </nav>

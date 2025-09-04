@@ -101,44 +101,53 @@ $(function () {
   }
 
   // Función para renderizar el gráfico
-  function renderChart(data) {
+function renderChart(data) {
     var pieChartCanvas = $("#pieChart").get(0).getContext("2d");
-      var labels = data.map(entry => entry.fecha);
-      var totals = data.map(entry => entry.total);
+    
+    // Combinar fecha y día de la semana para las etiquetas
+    var labels = data.map(entry => entry.dia_semana);
+    var totals = data.map(entry => entry.total_rentas);
 
-      var pieChart = new Chart(pieChartCanvas, {
+    var pieChart = new Chart(pieChartCanvas, {
         type: 'pie',
         data: {
-          datasets: [{
-            data: totals,
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.5)',
-              'rgba(54, 162, 235, 0.5)',
-              'rgba(255, 206, 86, 0.5)',
-              'rgba(75, 192, 192, 0.5)',
-              'rgba(153, 102, 255, 0.5)',
-              'rgba(255, 159, 64, 0.5)'
-            ],
-            borderColor: [
-              'rgba(255,99,132,1)',
-              'rgba(54, 162, 235, 1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(153, 102, 255, 1)',
-              'rgba(255, 159, 64, 1)'
-            ],
-          }],
-      
-          // These labels appear in the legend and in the tooltips when hovering different arcs
-          labels: labels
+            datasets: [{
+                data: totals,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 206, 86, 0.5)',
+                    'rgba(75, 192, 192, 0.5)',
+                    'rgba(153, 102, 255, 0.5)',
+                    'rgba(255, 159, 64, 0.5)'
+                ],
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+            }],
+            labels: labels
         },
         options: {
-          responsive: true,
-          animation: {
-            animateScale: true,
-            animateRotate: true
-          }
+            responsive: true,
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            },
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.labels[tooltipItem.index] || '';
+                        var value = data.datasets[0].data[tooltipItem.index];
+                        return `${label}: ${value.toLocaleString()}`;
+                    }
+                }
+            }
         }
-      });
-  }
+    });
+}
 });
