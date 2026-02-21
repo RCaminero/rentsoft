@@ -9,8 +9,6 @@
                 <thead>
                     <tr>
                         <th>Id</th>
-                        <th>Foto</th>
-                        <th>Placa</th>
                         <th>Marca</th>
                         <th>Tipo</th>
                         <th>Modelo</th>
@@ -55,13 +53,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="La placa es requerido">
-                                <input type="hidden" id="id" name="id">
-                                <input id="placa" class="form-control" type="text" name="placa" placeholder="Código de barras">
-                                <label for="placa">Placa<span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
+                        <input type="hidden" id="id" name="id">
                         <div class="col-md-3">
                             <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="La marca es requerido">
                                 <select id="marca" class="form-control" name="marca" required>
@@ -106,50 +98,6 @@
                             <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Precio Mes">
                                 <input id="precio_mes" class="form-control" type="text" name="precio_mes" placeholder="Precio Mes">
                                 <label for="precio_mes">Precio Mes <span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Kilometraje">
-                                <input id="kilometraje" class="form-control" type="text" name="kilometraje" placeholder="Kilometraje">
-                                <label for="kilometraje">Kilometraje <span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Transmision">
-                                <input id="transmision" class="form-control" type="text" name="transmision" placeholder="Transmision">
-                                <label for="transmision">Transmision <span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Asientos">
-                                <input id="asientos" class="form-control" type="text" name="asientos" placeholder="Asientos">
-                                <label for="asientos">Asientos<span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Equipaje">
-                                <input id="equipaje" class="form-control" type="text" name="equipaje" placeholder="Equipaje">
-                                <label for="equipaje">Equipaje <span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Combustible">
-                                <input id="combustible" class="form-control" type="text" name="combustible" placeholder="Combustible">
-                                <label for="combustible">Combustible <span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label>Foto</label>
-                            <div class="form-floating mb-3">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <label for="imagen" id="icon-image" class="btn btn-primary"><i class="fas fa-image"></i></label>
-                                        <span id="icon-cerrar"></span>
-                                        <input id="imagen" class="d-none" type="file" name="imagen" onchange="preview(event)">
-                                        <input type="hidden" id="foto_actual" name="foto_actual">
-                                        <img class="img-thumbnail" id="img-preview" width="300">
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

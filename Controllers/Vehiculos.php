@@ -25,7 +25,6 @@ class Vehiculos extends Controller
         $date = date('Y-m-d');
         for ($i = 0; $i < count($data); $i++) {
             $data[$i]['date'] = $date;
-            $data[$i]['imagen'] = '<img class="img-thumbnail" src="' . base_url . "Assets/img/vehiculos/" . $data[$i]['foto'] . '" width="50">';
             $data[$i]['editar'] = '<button class="btn btn-outline-primary" type="button" onclick="btnEditarVeh(' . $data[$i]['id'] . ');"><i class="fas fa-edit"></i></button>';
             $data[$i]['eliminar'] = '<button class="btn btn-outline-danger" type="button" onclick="btnEliminarVeh(' . $data[$i]['id'] . ');"><i class="fas fa-trash-alt"></i></button>';
         }
@@ -34,76 +33,30 @@ class Vehiculos extends Controller
     }
     public function registrar()
     {
-        $placa = strClean($_POST['placa']);
         $marca = intval(strClean($_POST['marca']));
         $tipo = intval(strClean($_POST['tipo']));
         $modelo = strClean($_POST['modelo']);
         $precio_hora = strClean($_POST['precio_hora']);
         $precio_dia = strClean($_POST['precio_dia']);
         $precio_mes = strClean($_POST['precio_mes']);
-        $kilometraje = strClean($_POST['kilometraje']);
-        $transmision = strClean($_POST['transmision']);
-        $asientos = strClean($_POST['asientos']);
-        $equipaje = strClean($_POST['equipaje']);
-        $combustible = strClean($_POST['combustible']);
         $id = strClean($_POST['id']);
-        $img = $_FILES['imagen'];
-        $name = $img['name'];
-        $tmpname = $img['tmp_name'];
 
-        $fecha = date("YmdHis");
         if (
-            empty($placa) || empty($marca) || empty($tipo) || empty($modelo)
-            || empty($precio_dia) || empty($precio_hora) || empty($precio_mes) || empty($kilometraje)
-            || empty($transmision) || empty($asientos) || empty($equipaje) || empty($combustible)
+            empty($marca) || empty($tipo) || empty($modelo)
+            || empty($precio_dia) || empty($precio_hora) || empty($precio_mes)
         ) {
             $msg = array('msg' => 'Todo los campos son obligatorios', 'icono' => 'warning');
         } else {
-            //CREAR CARPETA
-            if (!file_exists('Assets/img/vehiculos')) {
-                mkdir('Assets/img/vehiculos');
-            }
-            if (!empty($name)) {
-                $extension = pathinfo($name, PATHINFO_EXTENSION);
-                $formatos_permitidos =  array('png', 'jpeg', 'jpg');
-                $extension = pathinfo($name, PATHINFO_EXTENSION);
-                if (!in_array($extension, $formatos_permitidos)) {
-                    $msg = array('msg' => 'Archivo no permitido', 'icono' => 'warning');
-                } else {
-                    $imgNombre = $fecha . ".jpg";
-                    $destino = "Assets/img/vehiculos/" . $imgNombre;
-                }
-            } else if (!empty($_POST['foto_actual']) && empty($name)) {
-                $imgNombre = $_POST['foto_actual'];
-            } else {
-                $imgNombre = "default.png";
-            }
             if ($id == "") {
-                $data = $this->model->registrarVehiculo($placa, $precio_hora, $precio_dia, $precio_mes,
-                $modelo, $kilometraje, $transmision, $asientos, $equipaje, $combustible, $imgNombre, $tipo, $marca);
+                $data = $this->model->registrarVehiculo($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca);
                 if ($data == "ok") {
-                    if (!empty($name)) {
-                        move_uploaded_file($tmpname, $destino);
-                    }
                     $msg = array('msg' => 'Vehículo registrado con éxito', 'icono' => 'success');
-                } else if ($data == "existe") {
-                    $msg = array('msg' => 'El Vehículo ya existe', 'icono' => 'warning');
                 } else {
                     $msg = array('msg' => 'Error al registrar', 'icono' => 'error');
                 }
             } else {
-                $imgDelete = $this->model->editarVeh($id);
-                if ($imgDelete['foto'] != 'default.png') {
-                    if (file_exists("Assets/img/vehiculos/" . $imgDelete['foto'])) {
-                        unlink("Assets/img/vehiculos/" . $imgDelete['foto']);
-                    }
-                }
-                $data = $this->model->modificarVehiculo($placa, $precio_hora, $precio_dia, $precio_mes,
-                $modelo, $kilometraje, $transmision, $asientos, $equipaje, $combustible, $imgNombre, $tipo, $marca, $id);
+                $data = $this->model->modificarVehiculo($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca, $id);
                 if ($data == "modificado") {
-                    if (!empty($name)) {
-                        move_uploaded_file($tmpname, $destino);
-                    }
                     $msg = array('msg' => 'Vehículo modificado', 'icono' => 'success');
                 } else {
                     $msg = array('msg' => 'Error al modificar', 'icono' => 'error');

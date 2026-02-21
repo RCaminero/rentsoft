@@ -22,34 +22,22 @@ class VehiculosModel extends Query{
         $data = $this->selectAll($sql);
         return $data;
     }
-    public function registrarVehiculo($placa, $precio_hora, $precio_dia, $precio_mes,
-    $modelo, $kilometraje, $transmision, $asientos, $equipaje, $combustible, $imgNombre, $tipo, $marca)
+    public function registrarVehiculo($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca)
     {
-        $vericar = "SELECT * FROM vehiculos WHERE placa = '$placa'";
-        $existe = $this->select($vericar);
-        if (empty($existe)) {
-            $sql = "INSERT INTO vehiculos(placa, precio_hora, precio_dia, precio_mes,
-            modelo, kilometraje, transmision, asientos, equipaje, combustible, foto, id_tipo, id_marca) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            $datos = array($placa, $precio_hora, $precio_dia, $precio_mes,
-            $modelo, $kilometraje, $transmision, $asientos, $equipaje, $combustible, $imgNombre, $tipo, $marca);
-            $data = $this->save($sql, $datos);
-            if ($data == 1) {
-                $res = "ok";
-            }else{
-                $res = "error";
-            }
-        }else{
-            $res = "existe";
+        $sql = "INSERT INTO vehiculos(precio_hora, precio_dia, precio_mes, modelo, id_tipo, id_marca) VALUES (?,?,?,?,?,?)";
+        $datos = array($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca);
+        $data = $this->save($sql, $datos);
+        if ($data == 1) {
+            $res = "ok";
+        } else {
+            $res = "error";
         }
         return $res;
     }
-    public function modificarVehiculo($placa, $precio_hora, $precio_dia, $precio_mes,
-    $modelo, $kilometraje, $transmision, $asientos, $equipaje, $combustible, $imgNombre, $tipo, $marca, $id)
+    public function modificarVehiculo($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca, $id)
     {
-        $sql = "UPDATE vehiculos SET placa=?, precio_hora=?, precio_dia=?, precio_mes=?,
-        modelo=?, kilometraje=?, transmision=?, asientos=?, equipaje=?, combustible=?, foto=?, id_tipo=?, id_marca=? WHERE id = ?";
-        $datos = array($placa, $precio_hora, $precio_dia, $precio_mes,
-        $modelo, $kilometraje, $transmision, $asientos, $equipaje, $combustible, $imgNombre, $tipo, $marca, $id);
+        $sql = "UPDATE vehiculos SET precio_hora=?, precio_dia=?, precio_mes=?, modelo=?, id_tipo=?, id_marca=? WHERE id = ?";
+        $datos = array($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca, $id);
         $data = $this->save($sql, $datos);
         if ($data == 1) {
             $res = "modificado";

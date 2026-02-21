@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         columns: [
             { 'data': 'id' },
-            { 'data': 'imagen' },
-            { 'data': 'placa' },
             { 'data': 'marca' },
             { 'data': 'tipo' },
             { 'data': 'modelo' },
@@ -27,9 +25,9 @@ document.addEventListener('DOMContentLoaded', function () {
         "createdRow": function (row, data, index) {
             //pintar una celda
             if (data.estado == 2) {
-                $('td', row).eq(6).html('<span class="badge bg-dark">Alquilado</span>');
+                $('td', row).eq(4).html('<span class="badge bg-dark">Alquilado</span>');
             } else {
-                $('td', row).eq(6).html('<span class="badge bg-success">Activo</span>');
+                $('td', row).eq(4).html('<span class="badge bg-success">Activo</span>');
             }
         },
         buttons,
@@ -48,14 +46,11 @@ function frmVehiculo() {
     document.getElementById("formulario").reset();
     document.getElementById("id").value = "";
     myModal.show();
-    deleteImg();
 }
 function registrarVeh(e) {
     e.preventDefault();
-    if (frm.placa.value == '' || frm.marca.value == '' || frm.tipo.value == '' || frm.modelo.value == ''
-        || frm.precio_hora.value == '' || frm.precio_dia.value == '' || frm.precio_mes.value == ''
-        || frm.kilometraje.value == '' || frm.transmision.value == '' || frm.asientos.value == ''
-        || frm.equipaje.value == '' || frm.combustible.value == '') {
+    if (frm.marca.value == '' || frm.tipo.value == '' || frm.modelo.value == ''
+        || frm.precio_hora.value == '' || frm.precio_dia.value == '' || frm.precio_mes.value == '') {
             alertify.error("Todo los campos son requeridos");
     } else {
         const url = base_url + 'vehiculos/registrar';
@@ -95,24 +90,12 @@ function btnEditarVeh(id) {
         if (this.readyState == 4 && this.status == 200) {
             const res = JSON.parse(this.responseText);
             document.getElementById("id").value = res.id;
-            frm.placa.value = res.placa;
             frm.marca.value = res.id_marca;
             frm.tipo.value = res.id_tipo;
             frm.modelo.value = res.modelo;
             frm.precio_hora.value = res.precio_hora;
             frm.precio_dia.value = res.precio_dia;
             frm.precio_mes.value = res.precio_mes;
-            frm.kilometraje.value = res.kilometraje;
-            frm.transmision.value = res.transmision;
-            frm.asientos.value = res.asientos;
-            frm.equipaje.value = res.equipaje;
-            frm.combustible.value = res.combustible;
-            document.getElementById("img-preview").src = base_url + 'Assets/img/vehiculos/' + res.foto;
-            document.getElementById("icon-cerrar").innerHTML = `
-            <button class="btn btn-outline-danger" onclick="deleteImg()">
-            <i class="fas fa-times-circle"></i></button>`;
-            document.getElementById("icon-image").classList.add("d-none");
-            document.getElementById("foto_actual").value = res.foto;
             myModal.show();
         }
     }
