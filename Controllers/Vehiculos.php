@@ -35,27 +35,21 @@ class Vehiculos extends Controller
     {
         $marca = intval(strClean($_POST['marca']));
         $tipo = intval(strClean($_POST['tipo']));
-        $modelo = strClean($_POST['modelo']);
         $precio_hora = strClean($_POST['precio_hora']);
-        $precio_dia = strClean($_POST['precio_dia']);
-        $precio_mes = strClean($_POST['precio_mes']);
         $id = strClean($_POST['id']);
 
-        if (
-            empty($marca) || empty($tipo) || empty($modelo)
-            || empty($precio_dia) || empty($precio_hora) || empty($precio_mes)
-        ) {
+        if (empty($marca) || empty($tipo) || empty($precio_hora)) {
             $msg = array('msg' => 'Todo los campos son obligatorios', 'icono' => 'warning');
         } else {
             if ($id == "") {
-                $data = $this->model->registrarVehiculo($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca);
+                $data = $this->model->registrarVehiculo($precio_hora, $tipo, $marca);
                 if ($data == "ok") {
                     $msg = array('msg' => 'Vehículo registrado con éxito', 'icono' => 'success');
                 } else {
                     $msg = array('msg' => 'Error al registrar', 'icono' => 'error');
                 }
             } else {
-                $data = $this->model->modificarVehiculo($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca, $id);
+                $data = $this->model->modificarVehiculo($precio_hora, $tipo, $marca, $id);
                 if ($data == "modificado") {
                     $msg = array('msg' => 'Vehículo modificado', 'icono' => 'success');
                 } else {

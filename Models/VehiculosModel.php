@@ -22,10 +22,10 @@ class VehiculosModel extends Query{
         $data = $this->selectAll($sql);
         return $data;
     }
-    public function registrarVehiculo($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca)
+    public function registrarVehiculo($precio_hora, $tipo, $marca)
     {
-        $sql = "INSERT INTO vehiculos(precio_hora, precio_dia, precio_mes, modelo, id_tipo, id_marca) VALUES (?,?,?,?,?,?)";
-        $datos = array($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca);
+        $sql = "INSERT INTO vehiculos(precio_hora, id_tipo, id_marca) VALUES (?,?,?)";
+        $datos = array($precio_hora, $tipo, $marca);
         $data = $this->save($sql, $datos);
         if ($data == 1) {
             $res = "ok";
@@ -34,10 +34,10 @@ class VehiculosModel extends Query{
         }
         return $res;
     }
-    public function modificarVehiculo($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca, $id)
+    public function modificarVehiculo($precio_hora, $tipo, $marca, $id)
     {
-        $sql = "UPDATE vehiculos SET precio_hora=?, precio_dia=?, precio_mes=?, modelo=?, id_tipo=?, id_marca=? WHERE id = ?";
-        $datos = array($precio_hora, $precio_dia, $precio_mes, $modelo, $tipo, $marca, $id);
+        $sql = "UPDATE vehiculos SET precio_hora=?, id_tipo=?, id_marca=? WHERE id = ?";
+        $datos = array($precio_hora, $tipo, $marca, $id);
         $data = $this->save($sql, $datos);
         if ($data == 1) {
             $res = "modificado";

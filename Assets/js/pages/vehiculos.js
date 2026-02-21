@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
             { 'data': 'id' },
             { 'data': 'marca' },
             { 'data': 'tipo' },
-            { 'data': 'modelo' },
             { 'data': 'estado' },
             { 'data': 'editar' },
             { 'data': 'eliminar' }
@@ -25,9 +24,9 @@ document.addEventListener('DOMContentLoaded', function () {
         "createdRow": function (row, data, index) {
             //pintar una celda
             if (data.estado == 2) {
-                $('td', row).eq(4).html('<span class="badge bg-dark">Alquilado</span>');
+                $('td', row).eq(3).html('<span class="badge bg-dark">Alquilado</span>');
             } else {
-                $('td', row).eq(4).html('<span class="badge bg-success">Activo</span>');
+                $('td', row).eq(3).html('<span class="badge bg-success">Activo</span>');
             }
         },
         buttons,
@@ -49,8 +48,7 @@ function frmVehiculo() {
 }
 function registrarVeh(e) {
     e.preventDefault();
-    if (frm.marca.value == '' || frm.tipo.value == '' || frm.modelo.value == ''
-        || frm.precio_hora.value == '' || frm.precio_dia.value == '' || frm.precio_mes.value == '') {
+    if (frm.marca.value == '' || frm.tipo.value == '' || frm.precio_hora.value == '') {
             alertify.error("Todo los campos son requeridos");
     } else {
         const url = base_url + 'vehiculos/registrar';
@@ -92,10 +90,7 @@ function btnEditarVeh(id) {
             document.getElementById("id").value = res.id;
             frm.marca.value = res.id_marca;
             frm.tipo.value = res.id_tipo;
-            frm.modelo.value = res.modelo;
             frm.precio_hora.value = res.precio_hora;
-            frm.precio_dia.value = res.precio_dia;
-            frm.precio_mes.value = res.precio_mes;
             myModal.show();
         }
     }

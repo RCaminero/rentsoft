@@ -11,7 +11,6 @@
                         <th>Id</th>
                         <th>Marca</th>
                         <th>Tipo</th>
-                        <th>Modelo</th>
                         <th>Estado</th>
                         <th></th>
                         <th></th>
@@ -77,27 +76,9 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="El módelo es requerido">
-                                <input id="modelo" class="form-control" type="text" name="modelo" placeholder="Módelo">
-                                <label for="modelo">Módelo <span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
                             <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Precio Hora">
                                 <input id="precio_hora" class="form-control" type="text" name="precio_hora" placeholder="Precio Hora">
                                 <label for="precio_hora">Precio Hora <span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Precio Dia">
-                                <input id="precio_dia" class="form-control" type="text" name="precio_dia" placeholder="Precio Dia">
-                                <label for="precio_dia">Precio Dia <span class="text-danger fw-bold">*</span></label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-floating mb-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Precio Mes">
-                                <input id="precio_mes" class="form-control" type="text" name="precio_mes" placeholder="Precio Mes">
-                                <label for="precio_mes">Precio Mes <span class="text-danger fw-bold">*</span></label>
                             </div>
                         </div>
                     </div>
